@@ -1,59 +1,98 @@
+<!-- TODO: Rewrite from Vuelidate example: https://vuetifyjs.com/en/components/forms/#vuelidate -->
 <template>
-	<v-form v-model="valid">
-		<v-container>
-			<v-row>
-				<v-col
-					cols="12"
-					md="4"
-				>
-					<v-text-field
-						v-model="firstname"
-						:rules="nameRules"
-						label="First name"
-						required
-					></v-text-field>
-				</v-col>
-				<v-col
-					cols="12"
-					md="4"
-				>
-					<v-text-field
-						v-model="lastname"
-						:rules="nameRules"
-						label="Last Name"
-						required
-					></v-text-field>
-				</v-col>
-				<v-col
-					cols="12"
-					md="4"
-				>
-					<v-text-field
-						v-model="email"
-						:rules="emailRules"
-						label="E-mail"
-						required
-					></v-text-field>
-				</v-col>
-			</v-row>
-		</v-container>
-	</v-form>
+	<form style="margin=30%">
+		<v-text-field
+      v-model="user.firstname"
+      :error-messages="firstNameErrors"
+      label="First Name"
+      required
+      @input="$v.firstname.$touch()"
+      @blur="$v.firstname.$touch()"
+    ></v-text-field>
+		<v-text-field
+      v-model="user.lastname"
+      :error-messages="lastNameErrors"
+      label="Last Name"
+      required
+      @input="$v.lastname.$touch()"
+      @blur="$v.lastname.$touch()"
+    ></v-text-field>
+    <v-text-field
+      v-model="user.email"
+      :error-messages="emailErrors"
+      label="E-mail"
+      required
+      @input="$v.email.$touch()"
+      @blur="$v.email.$touch()"
+    ></v-text-field>
+
+		<v-btn
+      class="mr-4"
+      @click="submit"
+    >
+      submit
+    </v-btn>
+    <v-btn @click="clear">
+      clear
+    </v-btn>
+	</form>
 </template>
 
 <script>
-  export default {
-    data: () => ({
-      valid: false,
-      firstname: '',
-      lastname: '',
-      nameRules: [
-        v => !!v || 'Name is required',
-      ],
-      email: '',
-      emailRules: [
-        v => !!v || 'E-mail is required',
-        v => /.+@.+/.test(v) || 'E-mail must be valid',
-      ],
-    }),
-  }
+	import { validationMixin } from 'vuelidate'
+	import { required, email } from 'vuelidate/lib/validators'
+
+	export default {
+		mixins: [validationMixin],
+
+		validations: {
+			firstname: { required },
+			lastname: { required },
+			email: { required, email }
+		},
+
+		data() {
+			return {
+				user: {
+					firstname: '',
+					lastname: '',
+					email: ''
+				}
+			}
+		},
+
+		computed: {
+			firstNameErrors () {
+        const errors = []
+        if (!this.$v.firstname.$dirty) return errors
+        !this.$v.firstname.required && errors.push('First name is required.')
+        return errors
+      },
+			lastNameErrors () {
+        const errors = []
+        if (!this.$v.lastname.$dirty) return errors
+        !this.$v.lastname.required && errors.push('Last name is required.')
+        return errors
+      },
+      emailErrors () {
+        const errors = []
+        if (!this.$v.email.$dirty) return errors
+        !this.$v.email.email && errors.push('Must be valid e-mail')
+        !this.$v.email.required && errors.push('E-mail is required')
+        return errors
+      }
+		},
+
+		methods: {
+			submit () {
+				alert(JSON.stringify(this.user)) 
+			},
+			clear () {
+				this.$v.$reset()
+				this.firstname = ''
+				this.lastname = ''
+				this.email = ''
+			}
+		}
+	}
 </script>
